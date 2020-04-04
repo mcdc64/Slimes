@@ -20,7 +20,7 @@ public class SlimeAI : MonoBehaviour
     private float rand_rot; //amount by which the slime randomly rotates sometimes
     private int rand_rot_sign; //sign of this rotation - needed because the rotation routine only "fires" when the actual value of the rand_rot variable is positive.
 
-    private string[] priorityQueue;
+    private string[] priorityQueue; //not used yet
     private float retreat; //number that is set to 180 whenever the slime needs to do a U-turn.
     
 
@@ -54,7 +54,7 @@ public class SlimeAI : MonoBehaviour
         GameObject[] predators = GameObject.FindGameObjectsWithTag("Predator");
         for (int i = 0; i < predators.Length; i++) {
             
-            if(NoticesObject((transform.position-predators[i].transform.position).magnitude, transform.forward, predators[i]))
+            if(NoticesObject((transform.position-predators[i].transform.position).magnitude, transform.forward, predators[i])) //if the slime notices something, it should run away
             {
                 noticed = true;
                 rand_rot = 0;
@@ -66,8 +66,7 @@ public class SlimeAI : MonoBehaviour
         }
 
 
-        float[] cast = WallCast();
-        if (cast[0] > 0 || (cast[1] > 0 && cast[1]<=size) || (cast[2] > 0 && cast[2]<=size))
+        float[] cast = WallCast(); //gets the distances along three rays to whatever is in front of the slime. 
         
         if (retreat > 0)
         {
@@ -79,13 +78,13 @@ public class SlimeAI : MonoBehaviour
         {
             CastDecide(cast);
         }
-
+        
         if (noticed && !avoiding)
-        { //"if the player is close enough and the slime can see it, the slime should act on it"
-          //if the y component of the cross product is positive, the slime should rotate to the right to get away from the player and vice versa for negative
+        { //if the predator is close enough and the slime can see it, and the slime isn't otherwise busy, it should run away
+          
             if (retreat <= 0)
             {
-                RunAway(active);
+                RunAway(active); //run from the active object
 
             }
         }
@@ -144,6 +143,8 @@ public class SlimeAI : MonoBehaviour
         float dist = rel_position.magnitude;
         cross_product = Vector3.Cross(transform.forward, rel_position); //get the cross product. This is 0 if the slime is facing parallel or antiparallel to the object.
 
+        //if the y component of the cross product is positive, the slime should rotate to the right to get away from the player and vice versa for negative
+
         transform.Rotate(0.0f, -rot_speed * Mathf.Sign(cross_product.y), 0.0f, Space.World);
         rb.velocity = Forward2d() * (movespeed * (notice_dist + 3) / (dist + 3)); //the slime should try harder to get away as the object gets closer}
     }
@@ -155,9 +156,9 @@ public class SlimeAI : MonoBehaviour
         float[] dists = new float[3] { 0.0f, 0.0f, 0.0f }; //in order, the distance to the left hit, the center hit, and the right hit
 
         float angle = 30;
-        Vector3 right_vector = transform.forward;
-        Vector3 left_vector = transform.forward;
-        Quaternion rot_quaternion = Quaternion.AngleAxis(angle, Vector3.up);
+        Vector3 right_vector = transform.forward; //ray on the right
+        Vector3 left_vector = transform.forward; //ray on the left
+        Quaternion rot_quaternion = Quaternion.AngleAxis(angle, Vector3.up); //use this to rotate the two vectors above
         
 
 
@@ -187,7 +188,7 @@ public class SlimeAI : MonoBehaviour
         return dists;
     }
 
-    void CastDecide(float[] cast)
+    void CastDecide(float[] cast) //decide what to do with the data from WallCast
     {
         
         if (cast[1] > 0)
@@ -272,8 +273,4 @@ public class SlimeAI : MonoBehaviour
         }
     }
 
-    void OnCollisionExit(Collision collision)
-    {
-        
-    }
 }
